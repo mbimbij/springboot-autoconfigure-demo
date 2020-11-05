@@ -1,5 +1,6 @@
 package com.example;
 
+import helloautoconfig.ConsoleHelloService;
 import helloautoconfig.HelloAutoConfiguration;
 import helloautoconfig.HelloService;
 import org.hamcrest.Matchers;
@@ -12,10 +13,9 @@ import org.springframework.boot.test.system.OutputCaptureRule;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class HelloAutoConfigurationTest {
   @Rule
@@ -33,17 +33,25 @@ public class HelloAutoConfigurationTest {
 
   @Test
   public void defaultServiceIsAutoConfigured() {
-    load(EmtpyConfiguration.class);
+    load(EmtpyConfiguration.class, "hello.prefix=test", "hello.suffix=*");
+    HelloService service = context.getBean(HelloService.class);
+    service.sayHello("World");
+    output.expect(Matchers.containsString("test World *"));
+  }
+
+  @Test
+  public void defaultServiceBackoff() {
+    load(UserConfiguration.class);
     HelloService service = context.getBean(HelloService.class);
     service.sayHello("World !");
-    output.expect(Matchers.containsString("Hello World !"));
+    output.expect(Matchers.containsString("Bonjour World !"));
   }
 
   private void load(Class<?> config, String ... environment){
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
     context.register(config);
-    context.refresh();
     TestPropertyValues.of(environment).applyTo(context);
+    context.refresh();
     this.context = context;
   }
 
@@ -53,5 +61,10 @@ public class HelloAutoConfigurationTest {
 
   @Configuration
   @Import(EmtpyConfiguration.class)
-  static class UserConfiguration{}
+  static class UserConfiguration{
+    @Bean
+    public HelloService myHelloService(){
+      return new ConsoleHelloService();
+    }
+  }
 }
