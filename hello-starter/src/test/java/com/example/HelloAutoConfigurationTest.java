@@ -3,6 +3,7 @@ package com.example;
 import helloautoconfig.ConsoleHelloService;
 import helloautoconfig.HelloAutoConfiguration;
 import helloautoconfig.HelloService;
+import org.assertj.core.api.Assertions;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Rule;
@@ -16,6 +17,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HelloAutoConfigurationTest {
   @Rule
@@ -45,6 +48,18 @@ public class HelloAutoConfigurationTest {
     HelloService service = context.getBean(HelloService.class);
     service.sayHello("World !");
     output.expect(Matchers.containsString("Bonjour World !"));
+  }
+
+  @Test
+  public void defaultServiceIsNotAutoConfiguredIfPrefixIsMissing() {
+    load(EmtpyConfiguration.class);
+    assertThat(context.getBeansOfType(HelloService.class)).isEmpty();
+  }
+
+  @Test
+  public void defaultServiceIsNotAutoConfiguredIfPrefixDoesNotBeginWithUppercaseLetter() {
+    load(EmtpyConfiguration.class, "hello.prefix=doesNotBeginWithUppercase");
+    assertThat(context.getBeansOfType(HelloService.class)).isEmpty();
   }
 
   private void load(Class<?> config, String ... environment){

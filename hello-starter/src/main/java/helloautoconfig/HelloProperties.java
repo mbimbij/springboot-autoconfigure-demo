@@ -8,6 +8,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Getter
 @Setter
 public class HelloProperties {
-  private String prefix = "Hello";
+  /**
+   * Prefix of the welcome message
+   */
+  private String prefix;
+  /**
+   * Suffix of the welcome message
+   */
   private String suffix = "!";
 }
